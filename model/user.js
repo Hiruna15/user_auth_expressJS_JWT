@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { hashPassword, checkPassword } from "../lib/utils.js";
+import { hashPassword } from "../lib/utils.js";
 
 const { Schema } = mongoose;
 
@@ -19,7 +19,7 @@ const UserSchema = new Schema({
     required: [true, "email must be provided"],
     unique: [true, "The email you entered alredy has an account"],
     lowercase: true,
-    match: [emailRegex, "Enter a valid email address"],
+    // match: [emailRegex, "Enter a valid email address"],
   },
   hash: {
     type: String,
@@ -27,7 +27,6 @@ const UserSchema = new Schema({
   },
   salt: {
     type: String,
-    required: true,
   },
   date: { type: Date, default: Date.now },
 });
