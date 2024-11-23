@@ -15,7 +15,7 @@ const UserSchema = new Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: [true, "The email you entered alredy has an account"],
     lowercase: true,
     match: [emailRegex, "Enter a valid email address"],
   },
