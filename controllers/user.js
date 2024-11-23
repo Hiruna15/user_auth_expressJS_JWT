@@ -1,4 +1,5 @@
 import UserModel from "../model/user.js";
+import { issueJWT } from "../lib/utils.js";
 
 const register = async (req, res) => {
   const { username, email, password } = req.body;
@@ -17,6 +18,10 @@ const register = async (req, res) => {
     email,
     hash: password,
   });
+
+  const { token, expiresIn } = issueJWT(newUser._id, newUser.username);
+
+  res.status(200).json({ username: newUser.username, token, expiresIn });
 };
 
 export { register };
