@@ -19,9 +19,15 @@ const register = async (req, res) => {
     hash: password,
   });
 
-  const { token, expiresIn } = issueJWT(newUser._id, newUser.username);
+  const { token } = issueJWT(newUser._id, newUser.username);
 
-  res.status(200).json({ user: newUser, token, expiresIn });
+  res.cookie("authToken", token, {
+    httpOnly: true,
+    maxAge: 15 * 60 * 1000,
+    secure: true,
+  });
+
+  res.status(200).json({ user: newUser });
 };
 
 const login = async (req, res) => {
@@ -43,7 +49,13 @@ const login = async (req, res) => {
 
   const { token } = issueJWT(user._id, user.username);
 
-  res.status(200).json({ user, token });
+  res.cookie("authToken", token, {
+    httpOnly: true,
+    maxAge: 15 * 60 * 1000,
+    secure: true,
+  });
+
+  res.status(200).json({ user });
 };
 
 export { register, login };
