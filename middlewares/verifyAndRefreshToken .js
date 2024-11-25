@@ -1,14 +1,14 @@
-import { BadRequestError } from "../errors/index.js";
+import { BadRequestError, UnauthenticatedError } from "../errors/index.js";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 
-const verifyAndRefreshToken = (req, res, next) => {
+const verifyAndRefreshTokenMiddleware = (req, res, next) => {
   const token =
     req.cookies.accessToken && req.cookies.accessToken.split(" ")[1];
   const refreshToken = req.cookies.refreshToken;
 
   if (!token) {
-    throw new BadRequestError("Access token required");
+    throw new UnauthenticatedError("unauthenticated user");
   }
 
   const ACCESS_TOKEN_PUB_KEY = fs.readFileSync("accessToken_publicKey.pem");
@@ -20,7 +20,7 @@ const verifyAndRefreshToken = (req, res, next) => {
     (err, user) => {
       if (err && err.name === "TokenExpiredError") {
         if (!refreshToken) {
-          throw new BadRequestError("Refresh Token required");
+          throw new UnauthenticatedError("unauthenticated user");
         }
 
         const REFRESH_TOKEN_PUB_KEY = fs.readFileSync(
@@ -34,7 +34,7 @@ const verifyAndRefreshToken = (req, res, next) => {
             algorithms: ["RS256"],
           },
           (err, refreshUser) => {
-            if (err) throw new BadRequestError("Invalid Refresh Token");
+            if (err) throw new UnauthenticatedError("unauthenticated user");
 
             const ACCESS_TOKEN_PRIV_KEY = fs.readFileSync(
               "accessToken_privateKey.pem"
@@ -54,11 +54,12 @@ const verifyAndRefreshToken = (req, res, next) => {
 
             res.cookie("accessToken", newAccessToken, {
               httpOnly: true,
+              sameSite: "Strict",
               maxAge: 15 * 60 * 1000,
               secure: true,
             });
 
-            req.user.refreshUser;
+            req.user = refreshUser;
             next();
           }
         );
@@ -72,4 +73,4 @@ const verifyAndRefreshToken = (req, res, next) => {
   );
 };
 
-export default verifyAndRefreshToken;
+export default verifyAndRefreshTokenMiddleware;

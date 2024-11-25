@@ -1,9 +1,9 @@
 import express from "express";
-import authMiddleware from "../middlewares/auth.js";
+import verifyAndRefreshTokenMiddleware from "../middlewares/verifyAndRefreshToken .js";
 
 const router = express.Router();
 
-router.get("/protected", authMiddleware, (req, res) => {
+router.get("/protected", verifyAndRefreshTokenMiddleware, (req, res) => {
   res.status(200).json({ msg: "you are authorized to access this route" });
 });
 

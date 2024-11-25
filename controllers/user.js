@@ -1,5 +1,5 @@
 import UserModel from "../model/user.js";
-import { issueJWT, checkPassword } from "../lib/utils.js";
+import { issueJWTs, checkPassword } from "../lib/utils.js";
 import { BadRequestError } from "../errors/index.js";
 
 const register = async (req, res, next) => {
@@ -12,11 +12,22 @@ const register = async (req, res, next) => {
       hash: password,
     });
 
-    const { token } = issueJWT(newUser._id, newUser.username);
+    const { access_token, refresh_token } = issueJWTs(
+      newUser._id,
+      newUser.username
+    );
 
-    res.cookie("accessToken", token, {
+    res.cookie("accessToken", access_token, {
       httpOnly: true,
-      maxAge: 15 * 60 * 1000,
+      maxAge: 900000,
+      sameSite: "Strict",
+      secure: true,
+    });
+
+    res.cookie("refreshToken", refresh_token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "Strict",
       secure: true,
     });
 
@@ -43,15 +54,36 @@ const login = async (req, res, next) => {
     throw new BadRequestError("Invalid password");
   }
 
-  const { token } = issueJWT(user._id, user.username);
+  const { access_token, refresh_token } = issueJWTs(user._id, user.username);
 
-  res.cookie("accessToken", token, {
+  res.cookie("accessToken", access_token, {
     httpOnly: true,
-    maxAge: 15 * 60 * 1000,
+    maxAge: 900000,
+    sameSite: "Strict",
+    secure: true,
+  });
+
+  res.cookie("refreshToken", refresh_token, {
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: "Strict",
     secure: true,
   });
 
   res.status(200).json({ user });
 };
 
-export { register, login };
+const logout = (req, res) => {
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: true,
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "Strict",
+    secure: true,
+  });
+};
+
+export { register, login, logout };
