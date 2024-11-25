@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "fs";
 
-const generateKeyPair = () => {
+const generateKeyPair = (private_file, public_file) => {
   const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
     publicKeyEncoding: {
@@ -14,8 +14,14 @@ const generateKeyPair = () => {
     },
   });
 
-  fs.writeFileSync("private_key.pem", privateKey);
-  fs.writeFileSync("public_key.pem", publicKey);
+  fs.writeFileSync(private_file, privateKey);
+  fs.writeFileSync(public_file, publicKey);
 };
 
-generateKeyPair();
+const accessTokenPriv = "accessToken_privateKey.pem";
+const accessTokenPub = "accessToken_publicKey.pem";
+const refreshTokenPub = "refreshToken_publicKey.pem";
+const refreshTokenPriv = "refreshToken_privateKey.pem";
+
+generateKeyPair(accessTokenPriv, accessTokenPub);
+generateKeyPair(refreshTokenPriv, refreshTokenPub);

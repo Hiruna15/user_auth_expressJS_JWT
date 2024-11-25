@@ -1,11 +1,12 @@
-import { CustomApiError } from "../errors/index.js";
-
 const errorHandlereMiddleware = (err, req, res, next) => {
-  if (err instanceof CustomApiError) {
-    return res.status(err.status_code).json({ msg: err.message });
-  }
+  const customError = {
+    status_code: err.status_code || 500,
+    msg: err.message || "There is an error with the server. please try again",
+  };
 
-  res.status(500).json({ msg: "Something went wrong try aging later" });
+  console.log(err.message);
+
+  res.status(customError.status_code).json({ msg: customError.msg });
 };
 
 export default errorHandlereMiddleware;

@@ -1,8 +1,12 @@
 import jwt from "jsonwebtoken";
 import fs from "fs";
+import { UnauthenticatedError } from "../errors/index.js";
 
 const authMiddleware = (req, res, next) => {
-  const token = req.cookies.authToken;
+  const token = req.cookies.accessToken;
+
+  if (!token) throw new Error("cookie expired. please login aging");
+
   const tokenParts = token.split(" ");
 
   const PUB_KEY = fs.readFileSync("public_key.pem");
@@ -18,16 +22,14 @@ const authMiddleware = (req, res, next) => {
       req.user = decoded;
       next();
     } catch (err) {
-      res.status(401).json({
-        success: false,
-        msg: "You are not authorized to access this route",
-      });
+      throw new UnauthenticatedError(
+        "You are not authorized to access this route"
+      );
     }
   } else {
-    res.status(401).json({
-      success: false,
-      msg: "You are not authorized to access this route",
-    });
+    throw new UnauthenticatedError(
+      "You are not authorized to access this route"
+    );
   }
 };
 

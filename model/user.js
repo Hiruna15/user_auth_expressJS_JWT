@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { hashPassword } from "../lib/utils.js";
+import { BadRequestError } from "../errors/index.js";
 
 const { Schema } = mongoose;
 
@@ -22,7 +23,7 @@ const UserSchema = new Schema({
   },
   hash: {
     type: String,
-    required: true,
+    required: [true, "Password must be provided"],
   },
   salt: {
     type: String,
@@ -31,6 +32,15 @@ const UserSchema = new Schema({
 });
 
 UserSchema.pre("save", function () {
+  const passwordRegex =
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+
+  if (this.hash.length < 8 || !passwordRegex.test(this.hash)) {
+    throw new BadRequestError(
+      "password should contain minimum of 8 characters and should consist of all type of characters"
+    );
+  }
+
   const { hash, salt } = hashPassword(this.hash);
   this.hash = hash;
   this.salt = salt;
